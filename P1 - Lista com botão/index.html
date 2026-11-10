@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <label for="categoria">Categoria</label>
+    <select name="categoria" id="categoria">
+        <option value="junior">Júnior</option>
+        <option value="senior">Sênior</option>
+        <option value="master">Master</option>
+
+    </select>
+    <button id="consultar">Consultar resultados</button>
+    <p id="local"></p>
+    <p id="mensagem"></p>
+    <ul id="resultados"></ul>
+
+    <script>
+        const selecionarCategoria = document.getElementById('categoria');
+        const consultar = document.getElementById('consultar');
+        const local = document.getElementById('local');
+        const mensagem = document.getElementById('mensagem');
+        const resultados = document.getElementById('resultados');
+
+        consultar.addEventListener('click', () => {
+            const categoriaSelecionada = selecionarCategoria.value;
+
+            fetch(`/api/resultados?categoria=${categoriaSelecionada}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro na requisição');
+                })
+                .then(data => {
+                    local.textContent = data.categoria;
+                    mensagem.textContent = '';
+                    resultados.innerHTML = '';
+
+                    if (data.resultados.length === 0) {
+                        mensagem.textContent = 'Nenhum resultado encontrado.'
+                    } else {
+                        data.resultados.sort((a, b) => a.tempo.localeCompare(b.tempo));
+                        data.resultados.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.atleta} (${item.clube}) - ${item.tempo}`;
+                            resultados.appendChild(li);
+                        });
+                    }
+                })
+                .catch(() => {
+                    local.textContent = '';
+                    mensagem.textContent = 'Não foi possível consultar os resultados.';
+                    resultados.innerHTML = '';
+
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela de jogos</title>
+</head>
+<body>
+    <h1>Tabela de jogos</h1>
+
+    <main>
+        <section id="filtros">
+            <label for="rodada">Rodada</label>
+            <select name="rodada" id="rodada"></select>
+            <button id="consultar">Consultar jogos</button>
+        </section>
+
+        <section id="resultado">
+            <p id="local"></p>
+            <p id="mensagem"></p>
+            <ol id="jogos"></ol>
+        </section>
+    </main>
+
+    <script>
+        const selectRodada = document.getElementById('rodada');
+        const botaoConsultar = document.getElementById('consultar');
+        const local = document.getElementById('local');
+        const mensagem = document.getElementById('mensagem');
+        const listaJogos = document.getElementById('jogos');
+
+        function carregarRodadas() {
+            fetch('/api/rodadas')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro na requisição');
+                })
+                .then(data => {
+                    selectRodada.innerHTML = '';
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.nome;
+                        selectRodada.appendChild(option);
+                    });
+                })
+                .catch(() => {
+                    selectRodada.innerHTML = '';
+                    mensagem.textContent = 'Não foi possível carregar as opções.';
+                });
+        }
+
+        carregarRodadas();
+
+        botaoConsultar.addEventListener('click', () => {
+            const rodadaSelecionada = selectRodada.value;
+
+            fetch(`/api/jogos?rodada=${rodadaSelecionada}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro na requisição');
+                })
+                .then(data => {
+                    local.textContent = data.rodada;
+                    mensagem.textContent = '';
+                    listaJogos.innerHTML = '';
+
+                    if (!data.jogos || data.jogos.length === 0) {
+                        mensagem.textContent = 'Nenhum jogo encontrado.';
+                    } else {
+                        data.jogos.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.mandante} x ${item.visitante} - ${item.horario}`;
+                            listaJogos.appendChild(li);
+                        });
+                    }
+                })
+                .catch(() => {
+                    local.textContent = '';
+                    listaJogos.innerHTML = '';
+                    mensagem.textContent = 'Não foi possível consultar os jogos.';
+                });
+        });
+    </script>
+</body>
+</html>

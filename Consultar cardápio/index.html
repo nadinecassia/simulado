@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio do restaurante</title>
+</head>
+<body>
+    <h1>Cardápio do restaurante</h1>
+    <label for="tipo">Tipo: </label>
+    <select id="tipo" name="tipo">
+        <option value="entradas">Entradas</option>
+        <option value="pratos">Pratos principais</option>
+        <option value="sobremesas">Sobremesas</option>
+    </select>
+    <button id="consultar">Consultar cardápio</button>
+    <p id="local"></p>
+    <p id="mensagem"></p>
+    <ul id="itens"></ul>
+
+    <script>
+        const selecionarTipo = document.getElementById('tipo');
+        const botao = document.getElementById('consultar');
+        const local = document.getElementById('local');
+        const mensagem = document.getElementById('mensagem');
+        const itens = document.getElementById('itens');
+
+        botao.addEventListener('click', () => {
+            const tipoSelecionado = selecionarTipo.value;
+
+            fetch(`/api/cardapio?tipo=${tipoSelecionado}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro na requisição');
+                })
+                .then(data => {
+                    // Limpa mensagens e lista anteriores
+                    local.textContent = data.tipo;
+                    mensagem.textContent = '';
+                    itens.innerHTML = '';
+
+                    if (data.itens.length === 0) {
+                        mensagem.textContent = 'Nenhum item encontrado.';
+                    } else {
+                        data.itens.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.nome} - R$ ${item.preco}`;
+                            itens.appendChild(li);
+                        });
+                    }
+                })
+                .catch(() => {
+                    local.textContent = '';
+                    itens.innerHTML = '';
+                    mensagem.textContent = 'Não foi possível consultar o cardápio.';
+                });
+        });
+    </script>
+</body>
+</html>

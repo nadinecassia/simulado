@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo da biblioteca</title>
+</head>
+<body>
+    <h1>Catálogo da biblioteca</h1>
+
+    <label for="categoria">Categoria: </label>
+    <select id="categoria" name="categoria">
+        <option value="tecnologia">Tecnologia</option>
+        <option value="literatura">Literatura</option>
+        <option value="ciencias">Ciências</option>
+    </select>
+
+    <button id="consultar">Consultar livros</button>
+
+    <p id="local"></p>
+    <p id="mensagem"></p>
+    <ul id="livros"></ul>
+
+    <script>
+        const selectCategoria = document.getElementById('categoria');
+        const botaoConsultar = document.getElementById('consultar');
+        const local = document.getElementById('local');
+        const mensagem = document.getElementById('mensagem');
+        const listaLivros = document.getElementById('livros');
+
+        botaoConsultar.addEventListener('click', () => {
+            const categoriaSelecionada = selectCategoria.value;
+
+            fetch(`/api/livros?categoria=${categoriaSelecionada}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro na requisição');
+                })
+                .then(data => {
+                    local.textContent = data.categoria;
+                    mensagem.textContent = '';
+                    listaLivros.innerHTML = '';
+
+                    if (!data.livros || data.livros.length === 0) {
+                        mensagem.textContent = 'Nenhum livro encontrado.';
+                    } else {
+                        data.livros.forEach(livro => {
+                            const li = document.createElement('li');
+                            li.textContent = `${livro.titulo} - ${livro.autor} (${livro.ano})`;
+                            listaLivros.appendChild(li);
+                        });
+                    }
+                })
+                .catch(() => {
+                    local.textContent = '';
+                    listaLivros.innerHTML = '';
+                    mensagem.textContent = 'Não foi possível consultar os livros.';
+                });
+        });
+    </script>
+</body>
+</html>

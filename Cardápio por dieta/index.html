@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio por dieta</title>
+</head>
+<body>
+    <h1>Cardápio por dieta</h1>
+    <label for="tipo">Tipo: </label>
+    <select id="tipo" name="tipo">
+        <option value="entradas">Entradas</option>
+        <option value="pratos">Pratos principais</option>
+        <option value="sobremesas">Sobremesas</option>
+    </select>
+
+    <label for="dieta">Dieta</label>
+    <select name="dieta" id="dieta">
+        <option value="comum">Comum</option>
+        <option value="vegetariana">Vegetariana</option>
+    </select>
+    <button id="consultar">Consultar pratos</button>
+    <p id="local"></p>
+    <p id="mensagem"></p>
+    <ul id="pratos"></ul>
+
+    <script>
+        const selecionarTipo = document.getElementById('tipo');
+        const selecionarDieta = document.getElementById('dieta');
+        const botao = document.getElementById('consultar');
+        const local = document.getElementById('local');
+        const mensagem = document.getElementById('mensagem');
+        const pratos = document.getElementById('pratos');
+
+        botao.addEventListener('click', () => {
+            const tipoSelecionado = selecionarTipo.value;
+            const dietaSelecionada = selecionarDieta.value;
+        
+            fetch(`/api/cardapio?tipo=${tipoSelecionado}&dieta=${dietaSelecionada}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro na requisição');
+                    })
+                .then(data => {
+                    // Limpa mensagens e lista anteriores
+                    local.textContent = data.tipo;
+                    mensagem.textContent = '';
+                    pratos.innerHTML = '';
+
+                    if (data.pratos.length === 0) {
+                        mensagem.textContent = 'Nenhum prato encontrado.';
+                    } else {
+                        data.pratos.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.nome} - R$ ${item.preco} (${item.calorias} kcal)`;
+                            pratos.appendChild(li);
+                        });
+                    }
+                })
+                .catch(() => {
+                    local.textContent = '';
+                    pratos.innerHTML = '';
+                    mensagem.textContent = 'Não foi possível consultar os pratos.';
+                });
+        });
+    </script>
+    
+</body>
+</html>
